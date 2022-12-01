@@ -9,8 +9,8 @@ Instance::Instance(unsigned int t_n_facilities, unsigned int t_n_customers)
       m_per_unit_capacity_costs(t_n_facilities),
       m_max_capacities(t_n_facilities),
       m_demands(t_n_customers),
-      m_per_unit_transportation_costs(t_n_facilities, std::vector<double>(t_n_customers)),
-      m_per_unit_transportation_cost_variances(t_n_facilities, std::vector<double>(t_n_customers)),
+      m_per_unit_transportation_cost_nominals(t_n_facilities, std::vector<double>(t_n_customers)),
+      m_per_unit_transportation_cost_deviations(t_n_facilities, std::vector<double>(t_n_customers)),
       m_transportation_fixed_costs(t_n_facilities, std::vector<double>(t_n_customers))
 {
 
@@ -50,7 +50,7 @@ Instance read_instance(const std::string& t_path_to_file) {
     for (unsigned int i = 0 ; i < n_facilities ; ++i) {
         for (unsigned int j = 0 ; j < n_customers ; ++j) {
             file >> placeholder;
-            result.set_per_unit_transportation_cost(i, j, placeholder);
+            result.set_per_unit_transportation_cost_nominal(i, j, placeholder);
 
             file >> placeholder;
             result.set_per_unit_transportation_cost_variance(i, j, placeholder);

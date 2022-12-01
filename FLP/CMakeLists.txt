@@ -1,1 +1,2 @@
 add_subdirectory(solver)
+add_subdirectory(instance_refacto)

@@ -1,0 +1,1 @@
+add_executable(instance_refacto instance_refacto_main.cpp old_Instance.cpp)

@@ -5,10 +5,12 @@ set(CMAKE_CXX_STANDARD 17)
 
 include(FetchContent)
 
+set(USE_GUROBI ON)
+
 FetchContent_Declare(
         idol
         GIT_REPOSITORY https://github.com/hlefebvr/idol.git
-        GIT_TAG        v0.0.2-alpha
+        GIT_TAG        origin/dev # v0.0.2-alpha
 )
 
 FetchContent_MakeAvailable(idol)

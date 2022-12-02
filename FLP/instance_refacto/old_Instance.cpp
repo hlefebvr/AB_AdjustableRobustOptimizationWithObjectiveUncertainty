@@ -216,13 +216,22 @@ std::ostream& operator<<(std::ostream& t_os, const old::Instance& t_instance) {
 
     t_os << std::setprecision(2) << std::fixed;
     t_os << t_instance.m_n_sites << '\t' << t_instance.m_n_clients << '\n';
-    t_os << t_instance.m_f;
     t_os << t_instance.m_u;
+    t_os << t_instance.m_f;
     t_os << t_instance.m_q;
     t_os << t_instance.m_d;
     t_os << t_instance.m_t_bar;
     t_os << t_instance.m_t_tilde;
     t_os << t_instance.m_R;
+
+    for (unsigned int i = 0 ; i < t_instance.m_n_sites ; ++i) {
+        for (unsigned int j = 0 ; j < t_instance.m_n_clients ; ++j) {
+            t_os << .5 * t_instance.m_R[i][j] << '\t';
+        }
+        t_os << '\n';
+    }
+
+
     t_os << std::setprecision(user_precision);
 
     return t_os;

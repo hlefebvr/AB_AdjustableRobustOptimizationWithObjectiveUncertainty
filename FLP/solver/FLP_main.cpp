@@ -68,7 +68,7 @@ std::tuple<Model, Var, Vector<Var>> create_rmp(const Instance& t_instance,
     auto pi = result.add_vars(Dim<2>(n_facilities, n_customers), 0., Inf, Continuous, 0., "pi");
 
     for (unsigned int i = 0 ; i < n_facilities ; ++i) {
-        result.add_ctr(!t_q[i] * alpha <= t_instance.max_capacity(i) * x[i]);
+        result.add_ctr(!t_q[i] * alpha <= x[i]);
     }
 
     result.add_ctr(alpha == 1);
@@ -79,8 +79,8 @@ std::tuple<Model, Var, Vector<Var>> create_rmp(const Instance& t_instance,
         for (unsigned int i = 0; i < n_facilities; ++i) {
             for (unsigned int j = 0; j < n_customers; ++j) {
                 result.add_ctr(lambda + pi[i][j] >=
-                    (t_instance.transportation_fixed_cost_deviation(i ,j) * !t_z[i][j]
-                    + t_instance.per_unit_transportation_cost_deviation(i, j) * !t_y[i][j]) * alpha);
+                               (t_instance.transportation_fixed_cost_deviation(i ,j) * !t_z[i][j]
+                                + t_instance.per_unit_transportation_cost_deviation(i, j) * !t_y[i][j]) * alpha);
             }
         }
     } else {
@@ -111,13 +111,18 @@ int main(int t_argc, const char** t_argv) {
 
     auto instance = read_instance("/home/henri/CLionProjects/AB_AdjustableRobustOptimizationWithObjectiveUncertainty/FLP/data/instance_4_8_110__2.txt");
 
+    const double uncertainty_parameter = 1;
+
     auto [sp, q, r, y, z] = create_subproblem(instance, Convex);
-    auto [rmp, alpha, x] = create_rmp(instance, q, r, y, z, Polyhedral, 1);
+    auto [rmp, alpha, x] = create_rmp(instance, q, r, y, z, Polyhedral, uncertainty_parameter);
 
     Log::set_level(Info);
 
     auto solver = make_solver(rmp, alpha, sp, x, q);
     solver.solve();
+
+    std::cout << solver.primal_solution().objective_value() << std::endl;
+    std::cout << solver.time().count() << std::endl;
 
     return 0;
 }

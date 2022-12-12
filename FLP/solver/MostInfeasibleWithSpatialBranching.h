@@ -8,7 +8,7 @@
 #include "modeling.h"
 #include "algorithms.h"
 
-#define TOLERANCE_FOR_CONTINUOUS 1e-4
+#define TOLERANCE_FOR_CONTINUOUS 1e-3
 
 class MostInfeasibleWithSpatialBranching {
 public:

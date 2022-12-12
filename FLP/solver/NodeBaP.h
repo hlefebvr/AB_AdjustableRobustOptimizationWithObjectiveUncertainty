@@ -14,7 +14,7 @@ class NodeBaP : public Nodes::Basic {
 protected:
     NodeBaP(unsigned int t_id, const NodeBaP &t_parent);
 
-    void save_active_columns(const Algorithm& t_strategy);
+    void save_active_generators(const Algorithm& t_strategy);
 public:
     explicit NodeBaP(unsigned int t_id) : Nodes::Basic(t_id) {}
 
@@ -23,7 +23,7 @@ public:
         Basic::save_solution(t_strategy);
 
         if (Nodes::Basic::primal_solution().status() == Optimal) {
-            save_active_columns(t_strategy);
+            save_active_generators(t_strategy);
         }
     }
 
@@ -40,7 +40,7 @@ NodeBaP::NodeBaP(unsigned int t_id, const NodeBaP &t_parent) : Nodes::Basic(t_id
 
 }
 
-void NodeBaP::save_active_columns(const Algorithm &t_strategy) {
+void NodeBaP::save_active_generators(const Algorithm &t_strategy) {
 
     if (!t_strategy.is<Decomposition>() || !t_strategy.as<Decomposition>().begin()->is<ColumnGeneration>()) {
         throw Exception("Expected solution strategy to be Decomposition > ColumnGeneration.");

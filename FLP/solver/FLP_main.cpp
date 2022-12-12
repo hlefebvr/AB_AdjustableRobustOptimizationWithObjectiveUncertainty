@@ -1,6 +1,7 @@
 #include <iostream>
 #include "../Instance.h"
 #include "make_solver.h"
+#include "MostActiveHeuristic.h"
 #include <modeling.h>
 #include <reformulations/Reformulations_DantzigWolfe.h>
 
@@ -165,6 +166,8 @@ int main(int t_argc, const char** t_argv) {
     ub.solve();
 
     solver.set(Param::Algorithm::BestObjStop, ub.primal_solution().objective_value());
+
+    solver.add_callback<MostActiveHeuristic>(integer_branching_candidates, continuous_branching_candidates);
 
     solver.solve();
 

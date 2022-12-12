@@ -142,8 +142,8 @@ int main(int t_argc, const char** t_argv) {
 
     const double uncertainty_parameter = 1;
 
-    auto [single_stage, x, q, stage] = make_single_stage_model(instance, Convex, Polyhedral, uncertainty_parameter);
-    Reformulations::DantzigWolfe result(single_stage, stage);
+    auto [single_stage, x, q, second_stage_flag] = make_single_stage_model(instance, Convex, Polyhedral, uncertainty_parameter);
+    Reformulations::DantzigWolfe result(single_stage, second_stage_flag);
 
     auto integer_branching_candidates = get_reformulated(single_stage, x, result.reformulated_variable());
     auto continuous_branching_candidates = get_reformulated(single_stage, q, result.reformulated_variable());
@@ -164,9 +164,11 @@ int main(int t_argc, const char** t_argv) {
     Solvers::Gurobi ub(single_stage);
     ub.solve();
 
-    std::cout << ub.primal_solution().objective_value() << std::endl;
+    solver.set(Param::Algorithm::BestObjStop, ub.primal_solution().objective_value());
 
     solver.solve();
+
+    std::cout << "Time: " << (ub.time().count() + solver.time().count()) << " s" << std::endl;
 
     return 0;
 }

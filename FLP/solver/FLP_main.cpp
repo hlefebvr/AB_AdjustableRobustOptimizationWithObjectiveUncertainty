@@ -1,65 +1,63 @@
 #include <iostream>
-#include "../Instance.h"
-#include "make_solver.h"
-#include "MostActiveHeuristic.h"
-#include <modeling.h>
-#include <reformulations/Reformulations_DantzigWolfe.h>
-
-enum UncertaintySet { Polyhedral, Ellipsoidal };
-enum ObjectiveType { Convex, Linearized };
-
-std::tuple<Model, Vector<Var, 1>, Vector<Var, 1>, UserAttr> make_single_stage_model(const Instance& t_instance,
-                             ObjectiveType t_objective_type,
-                             UncertaintySet t_uncertainty_set,
-                             double t_uncertainty_parameter) {
+#include "AdjustableFLP.h"
+#include "solvers.h"
+/*
+auto make_model(Env t_env,
+                const Instance& t_instance,
+                ObjectiveType t_objective_type,
+                UncertaintySet t_uncertainty_set,
+                double t_uncertainty_parameter) {
 
     const unsigned int n_facilities = t_instance.n_facilities();
     const unsigned int n_customers = t_instance.n_customers();
 
-    Model result;
-
-    auto stage = result.add_user_attr<unsigned int>(0);
+    Model result(t_env);
+    Annotation<Ctr, unsigned int> decomposition(t_env, "decomposition", 0);
 
     /// VARIABLES
 
     // First-stage variables
-    auto x = result.add_vars(Dim<1>(n_facilities), 0., 1., Binary, 0., "x");
-    auto q = result.add_vars(Dim<1>(n_facilities), 0., 1., Continuous, 0., "q");
+    auto x = Var::array(t_env, Dim<1>(n_facilities), 0., 1., Binary, "x");
+    auto q = Var::array(t_env, Dim<1>(n_facilities), 0., 1., Continuous, "q");
 
     // Second-stage variables
-    auto y = result.add_vars(Dim<2>(n_facilities, n_customers), 0., 1., Continuous, 0., "y");
-    auto z = result.add_vars(Dim<2>(n_facilities, n_customers), 0., 1., Binary, 0., "z");
-    auto v = result.add_vars(Dim<1>(n_facilities), 0., Inf, Continuous, 0., "v");
-    auto r = result.add_vars(Dim<1>(n_facilities), 0., Inf, Continuous, 0., "r");
+    auto y = Var::array(t_env, Dim<2>(n_facilities, n_customers), 0., 1., Continuous, "y");
+    auto z = Var::array(t_env, Dim<2>(n_facilities, n_customers), 0., 1., Binary, "z");
+    auto v = Var::array(t_env, Dim<1>(n_facilities), 0., Inf, Continuous, "v");
+    auto r = Var::array(t_env, Dim<1>(n_facilities), 0., Inf, Continuous, "r");
 
     // Adversary dual variables
-    auto lambda = result.add_var(0., Inf, Continuous, 0., "lambda");
-    auto pi = result.add_vars(Dim<2>(n_facilities, n_customers), 0., Inf, Continuous, 0., "pi");
+    auto lambda = Var(t_env, 0., Inf, Continuous, "lambda");
+    auto pi = Var::array(t_env, Dim<2>(n_facilities, n_customers), 0., Inf, Continuous, "pi");
 
     /// CONSTRAINTS
 
     // Facility activation constraints
     for (unsigned int i = 0 ; i < n_facilities ; ++i) {
-        result.add_ctr(q[i] <= x[i]);
+        Ctr node_activation(t_env, q[i] <= x[i]);
+        result.add(node_activation);
     }
 
     // Capacity constraints
     for (unsigned int i = 0 ; i < n_facilities ; ++i) {
-        auto c = result.add_ctr(idol_Sum(j, Range(n_customers), t_instance.demand(j) * y[i][j]) <= t_instance.max_capacity(i) * q[i]);
-        result.set<unsigned int>(stage, c, 1);
+        Ctr capacity(t_env, idol_Sum(j, Range(n_customers), t_instance.demand(j) * y[i][j]) <= t_instance.max_capacity(i) * q[i]);
+        result.add(capacity);
+        capacity.set(decomposition, 0);
     }
 
     // Demand constraints
     for (unsigned int j = 0 ; j < n_customers ; ++j) {
-        auto c = result.add_ctr(idol_Sum(i, Range(n_facilities), y[i][j]) >= 1);
-        result.set<unsigned int>(stage, c, 1);
+        Ctr demand(t_env, idol_Sum(i, Range(n_facilities), y[i][j]) >= 1);
+        result.add(demand);
+        demand.set(decomposition, 0);
     }
 
     // Arc activation constraints
     for (unsigned int i = 0 ; i < n_facilities ; ++i) {
         for (unsigned int j = 0 ; j < n_customers ; ++j) {
-            auto c = result.add_ctr(y[i][j] <= z[i][j]);
-            result.set<unsigned int>(stage, c, 1);
+            Ctr edge_activation(t_env, y[i][j] <= z[i][j]);
+            result.add(edge_activation);
+            edge_activation.set(decomposition, 0);
         }
     }
 
@@ -123,55 +121,40 @@ std::tuple<Model, Vector<Var, 1>, Vector<Var, 1>, UserAttr> make_single_stage_mo
 
     result.set(Attr::Obj::Expr, std::move(objective));
 
-    return std::make_tuple(std::move(result), x, q, stage);
+    return std::make_tuple(std::move(result), x, q, decomposition);
 }
-
-Vector<Var, 1> get_reformulated(const Model& t_original_model, const Vector<Var, 1>& t_vec, const UserAttr& t_attr) {
-    Vector<Var, 1> result;
-    result.reserve(t_vec.size());
-
-    for (const auto& var : t_vec) {
-        result.emplace_back( t_original_model.get<Var>(t_attr, var) );
-    }
-
-    return result;
-}
+*/
 
 int main(int t_argc, const char** t_argv) {
 
-    auto instance = read_instance("/home/henri/CLionProjects/AB_AdjustableRobustOptimizationWithObjectiveUncertainty/FLP/data/instance_4_8_110__2.txt");
+    Logs::set_level<BranchAndBound>(Debug);
+    Logs::set_color<BranchAndBound>(Blue);
 
-    const double uncertainty_parameter = 1;
+    Logs::set_level<ColumnGeneration>(Debug);
+    Logs::set_color<ColumnGeneration>(Yellow);
 
-    auto [single_stage, x, q, second_stage_flag] = make_single_stage_model(instance, Convex, Polyhedral, uncertainty_parameter);
-    Reformulations::DantzigWolfe result(single_stage, second_stage_flag);
+    auto instance = read_instance("/home/henri/CLionProjects/AB_AdjustableRobustOptimizationWithObjectiveUncertainty/FLP/data/instance_4_8_110__0.txt");
 
-    auto integer_branching_candidates = get_reformulated(single_stage, x, result.reformulated_variable());
-    auto continuous_branching_candidates = get_reformulated(single_stage, q, result.reformulated_variable());
+    const double uncertainty_parameter = 2;
 
-    // Making continuous relaxation
-    for (const auto& var : integer_branching_candidates) {
-        result.restricted_master_problem().set(Attr::Var::Type, var, Continuous);
-    }
+    AdjustableFLP problem(instance, Convex, Polyhedral, uncertainty_parameter);
 
-    auto solver = make_solver(
-            result.restricted_master_problem(),
-            result.alpha(1),
-            result.subproblem(1),
-            integer_branching_candidates,
-            continuous_branching_candidates
-        );
+    auto& model = problem.model();
 
-    Solvers::Gurobi ub(single_stage);
-    ub.solve();
+    Idol::set_optimizer<Gurobi>(model);
 
-    solver.set(Param::Algorithm::BestObjStop, ub.primal_solution().objective_value());
+    model.optimize();
 
-    solver.add_callback<MostActiveHeuristic>(integer_branching_candidates, continuous_branching_candidates);
+    std::cout << "Gurobi: " << model.get(Attr::Solution::ObjVal) << std::endl;
 
-    solver.solve();
+    Idol::set_optimizer<BranchAndPriceMIP<Gurobi>>(model, problem.decomposition());
+    model.set(Param::ColumnGeneration::LogFrequency, 1);
+    model.set(Param::ColumnGeneration::SmoothingFactor, 0);
 
-    std::cout << "Time: " << (ub.time().count() + solver.time().count()) << " s" << std::endl;
+    model.optimize();
+
+    //std::cout << "Time: " << (ub.time().count() + solver.time().count()) << " s" << std::endl;
+    std::cout << "ColGen: " << model.get(Attr::Solution::ObjVal) << std::endl;
 
     return 0;
 }

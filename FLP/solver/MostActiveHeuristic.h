@@ -13,8 +13,8 @@
  * WARNING: this heuristic is dedicated to FLP only (in particular, expects, q <= x part of the model with x binary and q continuous)
  */
 class MostActiveHeuristic : public BranchAndBound::Callback {
-    const Vector<Var, 1>& m_integer_branching_candidates;
-    const Vector<Var, 1>& m_continuous_branching_candidates;
+    const Vector<Var, 1> m_integer_branching_candidates;
+    const Vector<Var, 1> m_continuous_branching_candidates;
 public:
     MostActiveHeuristic(const Vector<Var, 1>& t_integer_branching_candidates, const Vector<Var, 1>& t_continuous_branching_candidates)
         : m_integer_branching_candidates(t_integer_branching_candidates),

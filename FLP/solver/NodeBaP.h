@@ -7,6 +7,7 @@
 
 #include <list>
 #include "algorithms.h"
+#include "algorithms/dantzig-wolfe/DantzigWolfe.h"
 
 class NodeBaP : public Nodes::Basic {
     std::list<std::pair<double, Solution::Primal>> m_active_generators;
@@ -31,7 +32,7 @@ public:
 
     ActiveGenerators active_generators() const { return m_active_generators; }
 
-    NodeBaP *create_child(unsigned int t_id) const override {
+    [[nodiscard]] NodeBaP *create_child(unsigned int t_id) const override {
         return new NodeBaP(t_id, *this);
     }
 };
@@ -42,11 +43,11 @@ NodeBaP::NodeBaP(unsigned int t_id, const NodeBaP &t_parent) : Nodes::Basic(t_id
 
 void NodeBaP::save_active_generators(const Algorithm &t_strategy) {
 
-    if (!t_strategy.is<Decomposition>() || !t_strategy.as<Decomposition>().begin()->is<ColumnGeneration>()) {
-        throw Exception("Expected solution strategy to be Decomposition > ColumnGeneration.");
+    if (!t_strategy.is<DantzigWolfe>()) {
+        throw Exception("Expected solution strategy to be DantzigWolfe");
     }
 
-    auto& column_generation = t_strategy.as<Decomposition>().begin()->as<ColumnGeneration>();
+    auto& column_generation = t_strategy.as<DantzigWolfe>();
 
     if (column_generation.subproblems().size() > 1) {
         throw Exception("Not implemented for more than one subproblem.");
@@ -55,7 +56,7 @@ void NodeBaP::save_active_generators(const Algorithm &t_strategy) {
     auto& subproblem = *column_generation.subproblems().begin();
     auto& solution = primal_solution();
 
-    for (const auto& [var, primal_solution] : subproblem.currently_present_variables()) {
+    for (const auto& [var, primal_solution] : subproblem.present_generators()) {
         if (double value = solution.get(var) ; value > 1e-4) {
             m_active_generators.emplace_back(value, primal_solution);
         }

@@ -11,6 +11,24 @@
 enum UncertaintySet { Polyhedral, Ellipsoidal };
 enum ObjectiveType { Convex, Linearized };
 
+static std::ostream& operator<<(std::ostream& t_os, UncertaintySet t_uncertainty_set) {
+    switch (t_uncertainty_set) {
+        case Polyhedral: return t_os << "Polyhedral";
+        case Ellipsoidal: return t_os << "Ellipsoidal";
+        default:;
+    }
+    throw std::runtime_error("enum out of bounds.");
+}
+
+static std::ostream& operator<<(std::ostream& t_os, ObjectiveType t_objective_type) {
+    switch (t_objective_type) {
+        case Convex: return t_os << "Convex";
+        case Linearized: return t_os << "Linearized";
+        default:;
+    }
+    throw std::runtime_error("enum out of bounds.");
+}
+
 class AdjustableFLP {
     const Instance& m_instance;
     UncertaintySet m_uncertainty_set;

@@ -62,12 +62,31 @@ void AdjustableFLP::create_second_stage_variables_z() {
 }
 
 void AdjustableFLP::create_second_stage_variables_v() {
-    m_v = Var::array(m_env, Dim<1>(m_instance.n_facilities()), 0., Inf, Continuous, "v");
+    const unsigned int n_facilities = m_instance.n_facilities();
+    const unsigned int n_customers = m_instance.n_customers();
+
+    double sum_demands = 0.;
+    for (unsigned int j = 0 ; j < n_customers ; ++j) {
+        sum_demands += m_instance.demand(j);
+    }
+
+    m_v = Var::array(m_env, Dim<1>(n_facilities), 0., sum_demands, Continuous, "v");
     m_model.add_array<Var, 1>(m_v);
 }
 
 void AdjustableFLP::create_second_stage_variables_r() {
-    m_r = Var::array(m_env, Dim<1>(m_instance.n_facilities()), 0., Inf, Continuous, "r");
+    const unsigned int n_facilities = m_instance.n_facilities();
+    const unsigned int n_customers = m_instance.n_customers();
+
+    double max = 0.;
+    for (unsigned int j = 0 ; j < n_facilities ; ++j) {
+        double congestion = .75 * m_instance.max_capacity(j) * (1 + m_instance.max_capacity(j));
+        if (congestion > max) {
+            max = congestion;
+        }
+    }
+
+    m_r = Var::array(m_env, Dim<1>(m_instance.n_facilities()), 0., max, Continuous, "r");
     m_model.add_array<Var, 1>(m_r);
 }
 
@@ -85,7 +104,7 @@ void AdjustableFLP::create_facility_activation_constraints() {
     const unsigned int n_facilities = m_instance.n_facilities();
 
     for (unsigned int i = 0 ; i < n_facilities ; ++i) {
-        Ctr node_activation(m_env, m_q[i] <= m_x[i]);
+        Ctr node_activation(m_env, m_q[i] <= m_x[i], "facility_activation_" + std::to_string(i));
         m_model.add(node_activation);
     }
 
@@ -185,7 +204,8 @@ void AdjustableFLP::create_robust_counterpart_constraints() {
             for (unsigned int j = 0; j < n_customers; ++j) {
                 Ctr robust_counterpart(m_env, m_lambda[0] + m_pi[i][j] >=
                                m_instance.transportation_fixed_cost_deviation(i ,j) * m_z[i][j]
-                               + m_instance.per_unit_transportation_cost_deviation(i, j) * m_y[i][j]);
+                               + m_instance.per_unit_transportation_cost_deviation(i, j) * m_y[i][j],
+                               "robust_counterpart_" + std::to_string(i) + "_" + std::to_string(j));
                 m_model.add(robust_counterpart);
             }
         }
@@ -200,12 +220,14 @@ void AdjustableFLP::create_robust_counterpart_constraints() {
             for (unsigned int j = 0; j < n_customers; ++j) {
                 Ctr robust_counterpart(m_env, nu[i][j] + m_pi[i][j] >=
                                m_instance.transportation_fixed_cost_deviation(i, j) * m_z[i][j]
-                               + m_instance.per_unit_transportation_cost_deviation(i, j) * m_y[i][j]);
+                               + m_instance.per_unit_transportation_cost_deviation(i, j) * m_y[i][j],
+                                "robust_counterpart" + std::to_string(i) + "_" + std::to_string(j));
                 m_model.add(robust_counterpart);
             }
         }
 
-        Ctr(m_env, idol_Sum(i, Range(n_facilities), idol_Sum(j, Range(n_customers), nu[i][j] * nu[i][j])) <= m_lambda[0] * m_lambda[0]);
+        Ctr robust_counterpart_2(m_env, idol_Sum(i, Range(n_facilities), idol_Sum(j, Range(n_customers), nu[i][j] * nu[i][j])) <= m_lambda[0] * m_lambda[0], "robust_counterpart_2");
+        m_model.add(robust_counterpart_2);
 
     }
 }

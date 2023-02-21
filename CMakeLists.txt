@@ -7,6 +7,8 @@ include(FetchContent)
 
 set(USE_GUROBI ON)
 
+set(USE_MOSEK ON)
+
 FetchContent_Declare(
         idol
         GIT_REPOSITORY https://github.com/hlefebvr/idol.git

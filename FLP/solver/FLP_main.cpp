@@ -4,7 +4,7 @@
 
 void solve(const std::string& t_filename, ObjectiveType t_objective_type, UncertaintySet t_uncertainty_set, double t_uncertainty_parameter) {
 
-    std::cout << "Solving with " << t_objective_type << " objective, " << t_uncertainty_set << " uncertainty set (parameter = " << t_uncertainty_parameter << ")." << std::endl;
+    std::cout << "Solving " << t_filename << " with " << t_objective_type << " objective, " << t_uncertainty_set << " uncertainty set (parameter = " << t_uncertainty_parameter << ")." << std::endl;
 
     auto instance = read_instance(t_filename);
 
@@ -19,7 +19,7 @@ void solve(const std::string& t_filename, ObjectiveType t_objective_type, Uncert
     const double gurobi_obj = model.get(Attr::Solution::ObjVal);
     const auto gurobi_solution = save(model, Attr::Solution::Primal);
 
-    Idol::set_optimizer<BranchAndPriceMIP<Mosek, Gurobi>>(model, problem.decomposition());
+    Idol::set_optimizer<BranchAndPriceMIP<Mosek, Mosek>>(model, problem.decomposition());
     model.set(Param::ColumnGeneration::ArtificialVarCost, model.get(Attr::Solution::ObjVal) + 1);
     model.set(Param::ColumnGeneration::LogFrequency, 1);
     model.set(Param::ColumnGeneration::BranchingOnMaster, false);
@@ -55,13 +55,13 @@ int main(int t_argc, const char** t_argv) {
 
     const std::string folder = "/home/henri/CLionProjects/AB_AdjustableRobustOptimizationWithObjectiveUncertainty/FLP/data/";
 
-    for (unsigned int i = 0 ; i < 5 ; ++i) {
+    for (unsigned int i = 1 ; i < 2 ; ++i) {
 
         const std::string filename = folder + "instance_4_8_120__" + std::to_string(i) + ".txt";
 
-        for (double budget: {1., 2., 3.}) {
-            for (ObjectiveType objective_type: { Linearized, Convex }) {
-                for (UncertaintySet uncertainty_type: { Polyhedral, Ellipsoidal }) {
+        for (double budget: {1. /*, 2., 3. */}) {
+            for (ObjectiveType objective_type: { /* Linearized, */ Convex }) {
+                for (UncertaintySet uncertainty_type: { Polyhedral /*, Ellipsoidal */ }) {
                     solve(filename, objective_type, uncertainty_type, budget);
                 }
             }

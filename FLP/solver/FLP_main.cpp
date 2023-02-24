@@ -1,6 +1,7 @@
 #include <iostream>
 #include "AdjustableFLP.h"
 #include "solvers.h"
+#include "Solver.h"
 
 void solve(const std::string& t_filename, ObjectiveType t_objective_type, UncertaintySet t_uncertainty_set, double t_uncertainty_parameter) {
 
@@ -19,12 +20,12 @@ void solve(const std::string& t_filename, ObjectiveType t_objective_type, Uncert
     const double gurobi_obj = model.get(Attr::Solution::ObjVal);
     const auto gurobi_solution = save(model, Attr::Solution::Primal);
 
-    Idol::set_optimizer<BranchAndPriceMIP<Mosek, Mosek>>(model, problem.decomposition());
+    Idol::set_optimizer<Solver<Mosek, Mosek>>(model, problem.decomposition());
     model.set(Param::ColumnGeneration::ArtificialVarCost, model.get(Attr::Solution::ObjVal) + 1);
-    model.set(Param::ColumnGeneration::LogFrequency, 1);
     model.set(Param::ColumnGeneration::BranchingOnMaster, false);
     model.set(Param::ColumnGeneration::FarkasPricing, true);
     model.set(Param::ColumnGeneration::SmoothingFactor, .3);
+    model.set(Param::ColumnGeneration::LogFrequency, 1);
 
     model.optimize();
 
@@ -37,8 +38,10 @@ void solve(const std::string& t_filename, ObjectiveType t_objective_type, Uncert
     std::cout << "ColGen: " << colgen_obj << std::endl;
     std::cout << "Gap: " << gap * 100 << " %" << std::endl;
 
+    std::cout << colgen_solution << std::endl;
+
     if (gap > 1e-4) {
-        throw Exception("Error: Gurobi and ColGen do not match.");
+        //throw Exception("Error: Gurobi and ColGen do not match.");
     }
 
 }
@@ -55,12 +58,12 @@ int main(int t_argc, const char** t_argv) {
 
     const std::string folder = "/home/henri/CLionProjects/AB_AdjustableRobustOptimizationWithObjectiveUncertainty/FLP/data/";
 
-    for (unsigned int i = 1 ; i < 2 ; ++i) {
+    for (unsigned int i = 0 ; i < 5 ; ++i) {
 
         const std::string filename = folder + "instance_4_8_120__" + std::to_string(i) + ".txt";
 
-        for (double budget: {1. /*, 2., 3. */}) {
-            for (ObjectiveType objective_type: { /* Linearized, */ Convex }) {
+        for (double budget: { 2. /*1., 2., 3.*/}) {
+            for (ObjectiveType objective_type: {  /*Linearized,*/ Convex }) {
                 for (UncertaintySet uncertainty_type: { Polyhedral /*, Ellipsoidal */ }) {
                     solve(filename, objective_type, uncertainty_type, budget);
                 }

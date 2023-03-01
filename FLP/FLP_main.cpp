@@ -2,7 +2,7 @@
 #include <filesystem>
 #include "AdjustableFLP.h"
 #include "solvers.h"
-#include "Solver.h"
+#include "../solver/Solver.h"
 
 void solve(const std::string& t_filename, ObjectiveType t_objective_type, UncertaintySet t_uncertainty_set, double t_uncertainty_parameter) {
 

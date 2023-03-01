@@ -5,7 +5,7 @@
 #ifndef AB_ADJUSTABLEROBUSTOPTIMIZATIONWITHOBJECTIVEUNCERTAINTY_ADJUSTABLEFLP_H
 #define AB_ADJUSTABLEROBUSTOPTIMIZATIONWITHOBJECTIVEUNCERTAINTY_ADJUSTABLEFLP_H
 
-#include "../Instance.h"
+#include "Instance.h"
 #include "modeling.h"
 
 enum UncertaintySet { Polyhedral, Ellipsoidal };
@@ -79,7 +79,7 @@ public:
 
     Model& model() { return m_model; }
 
-    [[nodiscard]] const Annotation<Ctr, unsigned int> decomposition() const { return m_decomposition; }
+    [[nodiscard]] const Annotation<Ctr, unsigned int>& decomposition() const { return m_decomposition; }
 };
 
 #endif //AB_ADJUSTABLEROBUSTOPTIMIZATIONWITHOBJECTIVEUNCERTAINTY_ADJUSTABLEFLP_H

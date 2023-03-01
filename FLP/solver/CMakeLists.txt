@@ -1,2 +1,0 @@
-add_executable(FLP FLP_main.cpp ../Instance.h ../Instance.cpp MostInfeasibleWithSpatialBranching.h NodeBaP.h AdjustableFLP.h AdjustableFLP.cpp Solver.h MostActiveHeuristic.h)
-target_link_libraries(FLP PUBLIC idol)

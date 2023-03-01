@@ -18,16 +18,16 @@ To do so, you should then specify the CMake option `-DUSE_GUROBI=YES`, `-DUSE_MO
 accordingly. 
 
 **About using Mosek with quadratic constraints**: The interface of [Idol](https://github.com/hlefebvr/idol)
-is based on functional expressions, e.g., like $ \sum_{j=1}^n a_{ij}x_j + \sum_{j=1}^n\sum_{k=1}^n q_{jk}^ix_jx_k \le b_i $.
-The C++ Mosek interface, instead, is based on conic expressions, e.g., like $ (x_0, \textbf{x}) \in \mathcal Q^n $. 
+is based on functional expressions, e.g., like $$\sum_{j=1}^n a_{ij}x_j + \sum_{j=1}^n\sum_{k=1}^n q_{jk}^ix_jx_k \le b_i.$$
+The C++ Mosek interface, instead, is based on conic expressions, e.g., like $(x_0, \textbf{Fx}) \in \mathcal Q^n$. 
 To make the conversion between the Mosek interface and
-the Idol interface, one needs to compute an eigen value decomposition (automatically done by Idol). 
-This is done using the [Eigen](https://eigen.tuxfamily.org/index.php?title=Main_Page) C++ library.
+the Idol interface, one needs to compute an eigen value decomposition. 
+This is automatically done by Idol using the [Eigen](https://eigen.tuxfamily.org/index.php?title=Main_Page) C++ library.
 Thus, if you intend to use Idol to interface with Mosek and to use quadratic expressions, you need to set the `-DUSE_EIGEN=YES` cmake
 option as well (Note that Eigen is a header-only library and that no installation is needed).
 
 **About using Gurobi with quadratic constraints**: To the best of our knowledge, Gurobi does not return a Farkas certificate 
-for infeasible SOCPs. Thus, one should turn off Farkas pricing when dealing with infeasible restricted master problems if this one
+for infeasible SOCPs. Thus, one should turn off Farkas pricing (using the Idol parameter `Param::ColumnGeneration::FarkasPricing`) when dealing with infeasible restricted master problems if this one
 contains SOCP constraints. In this case, Idol will introduce artificial variables (similar to Phase I Simplex) to handle
 the infeasible cases. The value for these artificial columns is controlled by the `Param::ColumnGeneration::ArtificialVarCost`
 parameter (default value: 10+9). Note that this may lead to numerical instabilities.

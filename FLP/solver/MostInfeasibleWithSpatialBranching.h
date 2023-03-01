@@ -44,9 +44,7 @@ double MostInfeasibleWithSpatialBranching::Strategy<NodeT>::most_diverse_score(c
     const auto& solution = t_node.primal_solution();
     for (const auto& [alpha_value, generator] : t_node.active_generators()) {
 
-        const double score = std::abs( solution.get(t_var) - generator.get(t_var) );
-
-        std::cout << t_var << " -> " << solution.get(t_var) << ", " << generator.get(t_var) << ", " << score << std::endl;
+        const double score = std::abs( alpha_value * solution.get(t_var) - alpha_value * generator.get(t_var) );
 
         if ( score > TOLERANCE_FOR_CONTINUOUS ) {
             if (score > max_score) {
@@ -59,8 +57,6 @@ double MostInfeasibleWithSpatialBranching::Strategy<NodeT>::most_diverse_score(c
     if (n_different_generators == 0) {
         return -1.;
     }
-
-    std::cout << max_score << std::endl;
 
     return max_score;
 
@@ -103,7 +99,7 @@ bool MostInfeasibleWithSpatialBranching::Strategy<NodeT>::is_valid(const NodeT &
 
         for (const Var& var : m_continuous_branching_candidates) {
             if ( std::abs( alpha_value * solution.get(var) - alpha_value * generator.get(var) ) > TOLERANCE_FOR_CONTINUOUS ) {
-                std::cout << "Continuous infeasible " << var << ", " << solution.get(var) << " vs " << generator.get(var) << std::endl;
+                //std::cout << "Continuous infeasible " << var << ", " << solution.get(var) << " vs " << generator.get(var) << std::endl;
                 return false;
             }
         }

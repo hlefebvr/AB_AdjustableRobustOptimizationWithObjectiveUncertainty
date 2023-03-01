@@ -15,6 +15,7 @@
 #include "backends/column-generation/ColumnGeneration.h"
 #include "MostInfeasibleWithSpatialBranching.h"
 #include "NodeBaP.h"
+#include "MostActiveHeuristic.h"
 
 template<class MasterProblemBackendT, class SubProblemBackendT = MasterProblemBackendT>
 class Solver : public BranchAndBound {
@@ -45,6 +46,8 @@ public:
             }
 
         }
+
+        set_callback<MostActiveHeuristic<ColumnGeneration>>(integer_variables, continuous_variables);
 
         auto& nodes_manager = set_node_strategy<NodeStrategies::Basic<NodeBaP>>();
         nodes_manager.template set_active_node_manager<ActiveNodesManagers::Basic>();

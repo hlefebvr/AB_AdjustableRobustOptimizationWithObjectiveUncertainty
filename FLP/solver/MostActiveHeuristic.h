@@ -1,41 +1,48 @@
 //
-// Created by henri on 12/12/22.
+// Created by henri on 01/03/23.
 //
 
 #ifndef AB_ADJUSTABLEROBUSTOPTIMIZATIONWITHOBJECTIVEUNCERTAINTY_MOSTACTIVEHEURISTIC_H
 #define AB_ADJUSTABLEROBUSTOPTIMIZATIONWITHOBJECTIVEUNCERTAINTY_MOSTACTIVEHEURISTIC_H
 
-#include <modeling.h>
-#include <algorithms.h>
-#include "NodeBaP.h"
+#include "backends/callback/Callback.h"
+#include "backends/column-generation/ColumnGeneration.h"
+#include "backends/column-generation/Relaxations_DantzigWolfe.h"
 
-/**
- * WARNING: this heuristic is dedicated to FLP only (in particular, expects, q <= x part of the model with x binary and q continuous)
- */
-class MostActiveHeuristic : public BranchAndBound::Callback {
-    const Vector<Var, 1> m_integer_branching_candidates;
-    const Vector<Var, 1> m_continuous_branching_candidates;
+template<class BackendT>
+class MostActiveHeuristic : public Callback {
+    std::list<Var> m_integer_variables;
+    std::list<Var> m_continuous_variables;
 public:
-    MostActiveHeuristic(const Vector<Var, 1>& t_integer_branching_candidates, const Vector<Var, 1>& t_continuous_branching_candidates)
-        : m_integer_branching_candidates(t_integer_branching_candidates),
-          m_continuous_branching_candidates(t_continuous_branching_candidates) {}
+    MostActiveHeuristic(std::list<Var> t_integer_variables, std::list<Var> t_continuous_variables)
+        : m_integer_variables(std::move(t_integer_variables)),
+          m_continuous_variables(std::move(t_continuous_variables)) {
 
-    void execute(Context &t_ctx) override {
+    }
 
-        if (t_ctx.event() != RelaxationSolved) { return; }
+    void execute(Event t_event) override {
 
-        // If gap <= 3%, skip
+        if (t_event != Event::NodeSolved) {
+            return;
+        }
 
-        const auto& node = advanced(t_ctx).node();
-        const auto& node_bap = dynamic_cast<const NodeBaP&>(node);
+        const auto& node = relaxation().model();
+
+        const auto& column_generation = node.backend().template as<ColumnGeneration>();
 
         const Solution::Primal* most_active;
         double maximum = 0.;
 
-        for (const auto& [alpha_value, generator] : node_bap.active_generators()) {
-            if (alpha_value > maximum) {
-                maximum = alpha_value;
-                most_active = &generator;
+        for (const auto& subproblem : column_generation.subproblems()) {
+            for (const auto &[alpha, generator]: subproblem.present_generators()) {
+
+                const double alpha_value = node.get(Attr::Solution::Primal, alpha);
+
+                if (alpha_value > maximum) {
+                    maximum = alpha_value;
+                    most_active = &generator;
+                }
+
             }
         }
 
@@ -43,29 +50,26 @@ public:
             throw Exception("Error: no active generator found.");
         }
 
-        if (maximum >= 1 - 1e-4) { return; }
+        auto tmp = temporary_update_session();
 
-        std::list<std::pair<Var, double>> fixations;
-
-        for (unsigned int i = 0, n = m_integer_branching_candidates.size() ; i < n ; ++i) {
-
-            const auto& x_i = m_integer_branching_candidates[i];
-            const auto& q_i = m_continuous_branching_candidates[i];
-            double q_i_value = most_active->get(q_i);
-
-            fixations.emplace_back( q_i, q_i_value );
-            fixations.emplace_back( x_i, q_i_value > 1e-4 ? 1 : 0 );
-
+        for (const auto& var : m_integer_variables) {
+            //const double value = std::round(most_active->get(var));
+            const double value = std::ceil(node.get(Attr::Solution::Primal, var));
+            tmp.set(Attr::Var::Lb, var, value);
+            tmp.set(Attr::Var::Ub, var, value);
         }
 
-        advanced(t_ctx).fix_variables(fixations);
-        advanced(t_ctx).resolve();
-
-        auto solution = advanced(t_ctx).primal_solution();
-
-        if (solution.status() == Optimal) {
-            t_ctx.submit_solution( std::move(solution) );
+        for (const auto& var : m_continuous_variables) {
+            const double value = most_active->get(var);
+            tmp.set(Attr::Var::Lb, var, value);
+            tmp.set(Attr::Var::Ub, var, value);
         }
+
+        tmp.reoptimize();
+
+        auto solution = save(original_model(), Attr::Solution::Primal, node);
+
+        submit(std::move(solution));
 
     }
 };

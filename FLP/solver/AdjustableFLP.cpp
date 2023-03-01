@@ -106,6 +106,7 @@ void AdjustableFLP::create_facility_activation_constraints() {
     for (unsigned int i = 0 ; i < n_facilities ; ++i) {
         Ctr node_activation(m_env, m_q[i] <= m_x[i], "facility_activation_" + std::to_string(i));
         m_model.add(node_activation);
+        //node_activation.set(m_decomposition, 0);
     }
 
 }
@@ -198,20 +199,20 @@ void AdjustableFLP::create_robust_counterpart_constraints() {
     const unsigned int n_customers = m_instance.n_customers();
 
     if (m_uncertainty_set == Polyhedral) {
-        std::cout << "WARNING COSTS ARE WRONGLY COMPUTED" << std::endl;
+        //std::cout << "WARNING COSTS ARE WRONGLY COMPUTED" << std::endl;
 
         for (unsigned int i = 0; i < n_facilities; ++i) {
             for (unsigned int j = 0; j < n_customers; ++j) {
                 Ctr robust_counterpart(m_env, m_lambda[0] + m_pi[i][j] >=
                                m_instance.transportation_fixed_cost_deviation(i ,j) * m_z[i][j]
-                               + m_instance.per_unit_transportation_cost_deviation(i, j) * m_y[i][j],
+                               + m_instance.per_unit_transportation_cost_deviation(i, j) * m_instance.demand(j) * m_y[i][j],
                                "robust_counterpart_" + std::to_string(i) + "_" + std::to_string(j));
                 m_model.add(robust_counterpart);
             }
         }
 
     } else {
-        std::cout << "WARNING COSTS ARE WRONGLY COMPUTED" << std::endl;
+        //std::cout << "WARNING COSTS ARE WRONGLY COMPUTED" << std::endl;
 
         auto nu = Var::array(m_env, Dim<2>(n_facilities, n_customers), 0., Inf, Continuous, "nu");
         m_model.add_array<Var, 2>(nu);
@@ -220,7 +221,7 @@ void AdjustableFLP::create_robust_counterpart_constraints() {
             for (unsigned int j = 0; j < n_customers; ++j) {
                 Ctr robust_counterpart(m_env, nu[i][j] + m_pi[i][j] >=
                                m_instance.transportation_fixed_cost_deviation(i, j) * m_z[i][j]
-                               + m_instance.per_unit_transportation_cost_deviation(i, j) * m_y[i][j],
+                               + m_instance.per_unit_transportation_cost_deviation(i, j) * m_instance.demand(j) * m_y[i][j],
                                 "robust_counterpart" + std::to_string(i) + "_" + std::to_string(j));
                 m_model.add(robust_counterpart);
             }

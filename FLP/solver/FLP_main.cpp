@@ -1,4 +1,5 @@
 #include <iostream>
+#include <filesystem>
 #include "AdjustableFLP.h"
 #include "solvers.h"
 #include "Solver.h"
@@ -20,8 +21,9 @@ void solve(const std::string& t_filename, ObjectiveType t_objective_type, Uncert
     const double gurobi_obj = model.get(Attr::Solution::ObjVal);
     const auto gurobi_solution = save(model, Attr::Solution::Primal);
 
-    Idol::set_optimizer<Solver<Mosek, Mosek>>(model, problem.decomposition());
-    model.set(Param::ColumnGeneration::ArtificialVarCost, model.get(Attr::Solution::ObjVal) + 1);
+    Idol::set_optimizer<Solver<Mosek, Gurobi>>(model, problem.decomposition());
+    model.set(Param::Algorithm::BestBoundStop, gurobi_obj);
+    model.set(Param::ColumnGeneration::ArtificialVarCost, gurobi_obj + 1);
     model.set(Param::ColumnGeneration::BranchingOnMaster, false);
     model.set(Param::ColumnGeneration::FarkasPricing, true);
     model.set(Param::ColumnGeneration::SmoothingFactor, .3);
@@ -37,6 +39,18 @@ void solve(const std::string& t_filename, ObjectiveType t_objective_type, Uncert
     std::cout << "Gurobi: " << gurobi_obj << std::endl;
     std::cout << "ColGen: " << colgen_obj << std::endl;
     std::cout << "Gap: " << gap * 100 << " %" << std::endl;
+
+    std::cout << "result,"
+              << t_filename << ','
+              << t_uncertainty_set << ','
+              << t_uncertainty_parameter << ','
+              << t_objective_type << ','
+              << gurobi_obj << ','
+              << colgen_obj << ','
+              << (model.get(Attr::Solution::RelGap) * 100) << ','
+              << (gap * 100) << ','
+              << model.time().count()
+              << std::endl;
 
     std::cout << colgen_solution << std::endl;
 
@@ -54,23 +68,9 @@ int main(int t_argc, const char** t_argv) {
     Logs::set_level<ColumnGeneration>(Trace);
     Logs::set_color<ColumnGeneration>(Yellow);
 
-    //const std::string filename = "/home/henri/CLionProjects/AB_AdjustableRobustOptimizationWithObjectiveUncertainty/FLP/data/instance_4_8_120__1.txt";
+    const std::string filename = "/home/henri/CLionProjects/AB_AdjustableRobustOptimizationWithObjectiveUncertainty/FLP/data/instance_4_8_120__1.txt";
 
-    const std::string folder = "/home/henri/CLionProjects/AB_AdjustableRobustOptimizationWithObjectiveUncertainty/FLP/data/";
-
-    for (unsigned int i = 0 ; i < 5 ; ++i) {
-
-        const std::string filename = folder + "instance_4_8_120__" + std::to_string(i) + ".txt";
-
-        for (double budget: { 2. /*1., 2., 3.*/}) {
-            for (ObjectiveType objective_type: {  /*Linearized,*/ Convex }) {
-                for (UncertaintySet uncertainty_type: { Polyhedral /*, Ellipsoidal */ }) {
-                    solve(filename, objective_type, uncertainty_type, budget);
-                }
-            }
-        }
-
-    }
+    solve(filename, Convex, Polyhedral, 1);
 
     return 0;
 }

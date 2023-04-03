@@ -42,7 +42,7 @@ void solve(const std::string& t_filename, ObjectiveType t_objective_type, Uncert
             .with_best_bound_stop(static_model_optimal_objective_value)
             .with_subtree_depth(0)
             .with_log_level(Info, Blue)
-            //.with_log_frequency(1)
+            //dd -.with_log_frequency(1)
             .with_callback(MostActiveHeuristic(x.begin(), x.end(), q.begin(), q.end()))
     );
 

@@ -2,6 +2,7 @@
 #include "AdjustableFLP.h"
 #include "solvers.h"
 #include "optimizers/dantzig-wolfe/DantzigWolfeDecomposition.h"
+#include "optimizers/dantzig-wolfe/Optimizers_DantzigWolfeDecomposition.h"
 #include "optimizers/branch-and-bound/branching-rules/factories/MostInfeasible.h"
 #include "optimizers/branch-and-bound/node-selection-rules/factories/WorstBound.h"
 #include "../solver/NodeWithActiveColumns.h"
@@ -44,28 +45,51 @@ void solve(const std::string& t_filename, ObjectiveType t_objective_type, Uncert
             .with_log_level(Info, Default)
             //dd -.with_log_frequency(1)
             .with_callback(MostActiveHeuristic(x.begin(), x.end(), q.begin(), q.end()))
+            .with_time_limit(3600)
     );
 
     model.optimize();
 
     const double adjustable_model_optimal_objective = model.get(Attr::Solution::ObjVal);
 
-    const double gap = relative_gap(static_model_optimal_objective_value, adjustable_model_optimal_objective);
+    const double static_adjustable_gap = relative_gap(static_model_optimal_objective_value, adjustable_model_optimal_objective);
 
-    std::cout << "Gurobi: " << static_model_optimal_objective_value << std::endl;
-    std::cout << "ColGen: " << adjustable_model_optimal_objective << std::endl;
-    std::cout << "Gap: " << gap * 100 << " %" << std::endl;
+    const auto& branch_and_bound = model.optimizer().as<Optimizers::BranchAndBound<NodeWithActiveColumns>>();
+    const auto& column_generation = branch_and_bound.relaxation().optimizer().as<Optimizers::DantzigWolfeDecomposition>();
 
     std::cout << "result,"
+              // Instance file name
               << t_filename << ','
+              // Uncertainty set type
               << t_uncertainty_set << ','
+              // Uncertainty set parameter
               << t_uncertainty_parameter << ','
+              // Objective type
               << t_objective_type << ','
+              // Value of the static model
               << static_model_optimal_objective_value << ','
+              // Value of the adjustable model
               << adjustable_model_optimal_objective << ','
+              // Solution status of the adjustable model
+              << (SolutionStatus) model.get(Attr::Solution::Status) << ','
+              // Reason for the solution status of the adjustable model
+              << (SolutionReason) model.get(Attr::Solution::Reason) << ','
+              // Number of created nodes
+              << branch_and_bound.n_created_nodes() << ','
+              // Number of solved nodes
+              << branch_and_bound.n_solved_nodes() << ','
+              // Number of columns
+              << column_generation.subproblems().begin()->pool().size() << ","
+              // Final relative optimality gap
               << (model.get(Attr::Solution::RelGap) * 100) << ','
-              << (gap * 100) << ','
-              << model.optimizer().time().count()
+              // Final gap between static and adjustable model
+              << (static_adjustable_gap * 100) << ','
+              // Total execution time
+              << model.optimizer().time().count() << ','
+              // Time spent solving the master problem
+              << column_generation.master().optimizer().time().count()
+              // Time spent solving the pricing problem
+              << column_generation.subproblems().begin()->model().optimizer().time().count()
               << std::endl;
 
 }

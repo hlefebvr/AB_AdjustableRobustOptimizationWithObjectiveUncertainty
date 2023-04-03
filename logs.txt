@@ -1,0 +1,19 @@
+Solving /home/henri/CLionProjects/AB_AdjustableRobustOptimizationWithObjectiveUncertainty/FLP/data/instance_6_12_120__2.txt with Convex objective, Polyhedral uncertainty set (parameter = 1).
+Set parameter Username
+Academic license - for non-commercial use only - expires 2023-05-14
+skips updating sense
+[34m[2023-04-03 16:07:53]	[info]	[branch-and-bound]	<Node=   0 > <TimT=   2.53> <TimI=   2.53> <Levl=  0> <Stat=Optimal> <Reas=NotSpecified> <ObjVal= 21581.91> <BestBnd=     -inf> <BestObj= 21706.94> <RelGap=460682139744030784.00> <AbsGap= +inf> [0m
+[34m[2023-04-03 16:07:55]	[info]	[branch-and-bound]	<Node=   H-> <TimT=   4.26> <TimI=   1.72> <Levl=  0> <Stat=Optimal> <Reas=NotSpecified> <ObjVal= 21631.96> <BestBnd=     -inf> <BestObj= 21631.96> <RelGap=462279007396034880.00> <AbsGap= +inf> [0m
+[34m[2023-04-03 16:07:55]	[info]	[branch-and-bound]	<Node=   0+> <TimT=   4.26> <TimI=   1.72> <Levl=  0> <Stat=Optimal> <Reas=NotSpecified> <ObjVal= 21581.91> <BestBnd= 21581.91> <BestObj= 21631.96> <RelGap= 0.23> <AbsGap=50.05> [0m
+[34m[2023-04-03 16:07:57]	[info]	[branch-and-bound]	<Node=   H-> <TimT=   6.48> <TimI=   1.88> <Levl=  0> <Stat=Optimal> <Reas=NotSpecified> <ObjVal= 21631.84> <BestBnd= 21581.91> <BestObj= 21631.84> <RelGap= 0.23> <AbsGap=49.93> [0m
+[34m[2023-04-03 16:07:57]	[info]	[branch-and-bound]	<Node=   1+> <TimT=   6.49> <TimI=   0.01> <Levl=  1> <Stat=Optimal> <Reas=NotSpecified> <ObjVal= 21624.87> <BestBnd= 21624.87> <BestObj= 21631.84> <RelGap= 0.03> <AbsGap= 6.97> [0m
+[34m[2023-04-03 16:07:58]	[info]	[branch-and-bound]	<Node=   3-> <TimT=   7.32> <TimI=   0.83> <Levl=  2> <Stat=Optimal> <Reas=Proved> <ObjVal= 21631.84> <BestBnd= 21624.87> <BestObj= 21631.84> <RelGap= 0.03> <AbsGap= 6.97> [0m
+Gurobi: 21706.94
+ColGen: 21631.84
+Gap: 0.35 %
+result,/home/henri/CLionProjects/AB_AdjustableRobustOptimizationWithObjectiveUncertainty/FLP/data/instance_6_12_120__2.txt,Polyhedral,1.00,Convex,21706.94,21631.84,0.00,0.35,7.33
+Solving /home/henri/CLionProjects/AB_AdjustableRobustOptimizationWithObjectiveUncertainty/FLP/data/instance_6_12_120__2.txt with Convex objective, Polyhedral uncertainty set (parameter = 1).
+Set parameter Username
+Academic license - for non-commercial use only - expires 2023-05-14
+skips updating sense
+[34m[2023-04-03 16:08:00]	[info]	[branch-and-bound]	<Node=   0 > <TimT=   2.21> <TimI=   2.21> <Levl=  0> <Stat=Optimal> <Reas=NotSpecified> <ObjVal= 21581.91> <BestBnd=     -inf> <BestObj= 21706.94> <RelGap=460682139744030784.00> <AbsGap= +inf> [0m

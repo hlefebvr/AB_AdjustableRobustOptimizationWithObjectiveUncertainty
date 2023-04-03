@@ -41,7 +41,7 @@ void solve(const std::string& t_filename, ObjectiveType t_objective_type, Uncert
             .with_node_selection_rule(WorstBound())
             .with_best_bound_stop(static_model_optimal_objective_value)
             .with_subtree_depth(0)
-            .with_log_level(Info, Blue)
+            .with_log_level(Info, Default)
             //dd -.with_log_frequency(1)
             .with_callback(MostActiveHeuristic(x.begin(), x.end(), q.begin(), q.end()))
     );
@@ -74,7 +74,19 @@ int main(int t_argc, const char** t_argv) {
 
     const std::string filename = "/home/henri/CLionProjects/AB_AdjustableRobustOptimizationWithObjectiveUncertainty/FLP/data/instance_6_12_120__2.txt";
 
-    solve(filename, Convex, Polyhedral, 1);
+    for (const auto objective_type : {Convex, Linearized }) {
+        for (const auto unceratinty_set_type : {Ellipsoidal, Polyhedral }) {
+            for (double Gamma : { 1., 2., 3., 4. }) {
+                try {
+                    solve(filename, objective_type, unceratinty_set_type, Gamma);
+                } catch (...) {
+                    std::cout << "Failed instance " << filename << " with " << objective_type << " objective "
+                              << " and " << unceratinty_set_type << " uncertainty type with parameter "
+                              << Gamma << "." << std::endl;
+                }
+            }
+        }
+    }
 
     return 0;
 }

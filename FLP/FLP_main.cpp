@@ -2,7 +2,10 @@
 #include <filesystem>
 #include "AdjustableFLP.h"
 #include "solvers.h"
-#include "../solver/Solver.h"
+#include "optimizers/dantzig-wolfe/DantzigWolfeDecomposition.h"
+#include "optimizers/branch-and-bound/branching-rules/factories/MostInfeasible.h"
+#include "optimizers/branch-and-bound/node-selection-rules/factories/WorstBound.h"
+#include "../solver/NodeWithActiveColumns.h"
 
 void solve(const std::string& t_filename, ObjectiveType t_objective_type, UncertaintySet t_uncertainty_set, double t_uncertainty_parameter) {
 
@@ -13,31 +16,40 @@ void solve(const std::string& t_filename, ObjectiveType t_objective_type, Uncert
     AdjustableFLP problem(instance, t_objective_type, t_uncertainty_set, t_uncertainty_parameter);
 
     auto& model = problem.model();
+    const auto& x = problem.x();
+    const auto& q = problem.q();
 
-    Idol::set_optimizer<Gurobi>(model);
+    model.use(Gurobi());
+    model.optimize();
+
+    const double static_model_optimal_objective_value = model.get(Attr::Solution::ObjVal);
+
+    model.use(
+        BranchAndBound<NodeWithActiveColumns>()
+            .with_node_solver(
+                DantzigWolfeDecomposition(problem.decomposition())
+                    .with_master_solver(Mosek::ContinuousRelaxation())
+                    .with_pricing_solver(Gurobi())
+                    .with_farkas_pricing(true)
+                    .with_dual_price_smoothing_stabilization(.3)
+                    .with_log_level(Trace, Yellow)
+                    .with_log_frequency(1)
+            )
+            .with_branching_rule(MostInfeasible(x.begin(), x.end()))
+            .with_node_selection_rule(WorstBound())
+            .with_best_bound_stop(static_model_optimal_objective_value)
+            .with_log_level(Trace, Blue)
+            .with_log_frequency(1)
+    );
 
     model.optimize();
 
-    const double gurobi_obj = model.get(Attr::Solution::ObjVal);
-    const auto gurobi_solution = save(model, Attr::Solution::Primal);
+    const double adjustable_model_optimal_objective = model.get(Attr::Solution::ObjVal);
 
-    Idol::set_optimizer<Solver<Mosek, Gurobi>>(model, problem.decomposition());
-    model.set(Param::Algorithm::BestBoundStop, gurobi_obj);
-    model.set(Param::ColumnGeneration::ArtificialVarCost, gurobi_obj + 1);
-    model.set(Param::ColumnGeneration::BranchingOnMaster, false);
-    model.set(Param::ColumnGeneration::FarkasPricing, true);
-    model.set(Param::ColumnGeneration::SmoothingFactor, .3);
-    model.set(Param::ColumnGeneration::LogFrequency, 1);
+    const double gap = relative_gap(static_model_optimal_objective_value, adjustable_model_optimal_objective);
 
-    model.optimize();
-
-    const double colgen_obj = model.get(Attr::Solution::ObjVal);
-    const auto colgen_solution = save(model, Attr::Solution::Primal);
-
-    const double gap = relative_gap(gurobi_obj, colgen_obj);
-
-    std::cout << "Gurobi: " << gurobi_obj << std::endl;
-    std::cout << "ColGen: " << colgen_obj << std::endl;
+    std::cout << "Gurobi: " << static_model_optimal_objective_value << std::endl;
+    std::cout << "ColGen: " << adjustable_model_optimal_objective << std::endl;
     std::cout << "Gap: " << gap * 100 << " %" << std::endl;
 
     std::cout << "result,"
@@ -45,28 +57,20 @@ void solve(const std::string& t_filename, ObjectiveType t_objective_type, Uncert
               << t_uncertainty_set << ','
               << t_uncertainty_parameter << ','
               << t_objective_type << ','
-              << gurobi_obj << ','
-              << colgen_obj << ','
+              << static_model_optimal_objective_value << ','
+              << adjustable_model_optimal_objective << ','
               << (model.get(Attr::Solution::RelGap) * 100) << ','
               << (gap * 100) << ','
-              << model.time().count()
+              << model.optimizer().time().count()
               << std::endl;
 
-    std::cout << colgen_solution << std::endl;
-
     if (gap > 1e-4) {
-        //throw Exception("Error: Gurobi and ColGen do not match.");
+        throw Exception("Error: Gurobi and ColGen do not match.");
     }
 
 }
 
 int main(int t_argc, const char** t_argv) {
-
-    Logs::set_level<BranchAndBound>(Trace);
-    Logs::set_color<BranchAndBound>(Blue);
-
-    Logs::set_level<ColumnGeneration>(Trace);
-    Logs::set_color<ColumnGeneration>(Yellow);
 
     const std::string filename = "/home/henri/CLionProjects/AB_AdjustableRobustOptimizationWithObjectiveUncertainty/FLP/data/instance_4_8_120__1.txt";
 

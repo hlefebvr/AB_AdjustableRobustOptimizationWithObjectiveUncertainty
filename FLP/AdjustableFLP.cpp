@@ -2,7 +2,6 @@
 // Created by henri on 20/02/23.
 //
 #include "AdjustableFLP.h"
-#include "modeling/models/BlockModel.h"
 
 AdjustableFLP::AdjustableFLP(const Instance &t_instance, ObjectiveType t_objective_type,
                              UncertaintySet t_uncertainty_set, double t_uncertainty_parameter)

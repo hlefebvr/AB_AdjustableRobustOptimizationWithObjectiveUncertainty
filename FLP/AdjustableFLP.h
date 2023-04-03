@@ -80,6 +80,9 @@ public:
     Model& model() { return m_model; }
 
     [[nodiscard]] const Annotation<Ctr, unsigned int>& decomposition() const { return m_decomposition; }
+
+    [[nodiscard]] const auto& x() const { return m_x; }
+    [[nodiscard]] const auto& q() const { return m_q; }
 };
 
 #endif //AB_ADJUSTABLEROBUSTOPTIMIZATIONWITHOBJECTIVEUNCERTAINTY_ADJUSTABLEFLP_H

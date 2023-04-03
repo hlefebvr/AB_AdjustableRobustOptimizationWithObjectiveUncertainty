@@ -89,7 +89,11 @@ void solve(const std::string& t_filename, ObjectiveType t_objective_type, Uncert
               // Time spent solving the master problem
               << column_generation.master().optimizer().time().cumulative_count() << ','
               // Time spent solving the pricing problem
-              << column_generation.subproblems().begin()->model().optimizer().time().cumulative_count()
+              << column_generation.subproblems().begin()->model().optimizer().time().cumulative_count() << ','
+              // Root node best bound
+              << branch_and_bound.root_node_best_bound() << ','
+              // Root node best obj
+              << branch_and_bound.root_node_best_obj()
               << std::endl;
 
 }

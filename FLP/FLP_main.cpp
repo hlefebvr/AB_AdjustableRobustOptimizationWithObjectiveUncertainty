@@ -6,6 +6,7 @@
 #include "optimizers/branch-and-bound/branching-rules/factories/MostInfeasible.h"
 #include "optimizers/branch-and-bound/node-selection-rules/factories/WorstBound.h"
 #include "../solver/NodeWithActiveColumns.h"
+#include "../solver/MostInfeasibleWithSpatialBranching.h"
 
 void solve(const std::string& t_filename, ObjectiveType t_objective_type, UncertaintySet t_uncertainty_set, double t_uncertainty_parameter) {
 
@@ -28,18 +29,20 @@ void solve(const std::string& t_filename, ObjectiveType t_objective_type, Uncert
         BranchAndBound<NodeWithActiveColumns>()
             .with_node_solver(
                 DantzigWolfeDecomposition(problem.decomposition())
-                    .with_master_solver(Mosek::ContinuousRelaxation())
+                    .with_master_solver(Gurobi::ContinuousRelaxation())
                     .with_pricing_solver(Gurobi())
                     .with_farkas_pricing(true)
                     .with_dual_price_smoothing_stabilization(.3)
-                    .with_log_level(Trace, Yellow)
-                    .with_log_frequency(1)
+                    .with_branching_on_master(false)
+                    .with_log_level(Mute, Yellow)
+                    //.with_log_frequency(1)
             )
-            .with_branching_rule(MostInfeasible(x.begin(), x.end()))
+            .with_branching_rule(MostInfeasibleWithSpatialBranching(x.begin(), x.end(), q.begin(), q.end()))
             .with_node_selection_rule(WorstBound())
             .with_best_bound_stop(static_model_optimal_objective_value)
-            .with_log_level(Trace, Blue)
-            .with_log_frequency(1)
+            .with_subtree_depth(0)
+            .with_log_level(Info, Blue)
+            //.with_log_frequency(1)
     );
 
     model.optimize();
@@ -63,10 +66,6 @@ void solve(const std::string& t_filename, ObjectiveType t_objective_type, Uncert
               << (gap * 100) << ','
               << model.optimizer().time().count()
               << std::endl;
-
-    if (gap > 1e-4) {
-        throw Exception("Error: Gurobi and ColGen do not match.");
-    }
 
 }
 

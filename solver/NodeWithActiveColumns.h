@@ -9,12 +9,14 @@
 #include "optimizers/branch-and-bound/nodes/NodeInfo.h"
 #include "optimizers/column-generation/ColumnGeneration.h"
 #include "optimizers/branch-and-bound/nodes/NodeUpdatorByBound.h"
+#include "tolerances.h"
 
 class NodeWithActiveColumns : public NodeInfo {
-    std::list<std::pair<double, Solution::Primal>> m_active_generators;
+    std::optional<std::list<std::pair<double, Solution::Primal>>> m_active_generators;
 
-    NodeWithActiveColumns(const NodeWithActiveColumns& t_src) = default;
     void save_active_generators(const Model& t_strategy);
+protected:
+    NodeWithActiveColumns(const NodeWithActiveColumns& t_src);
 public:
     NodeWithActiveColumns() = default;
 
@@ -24,7 +26,7 @@ public:
 
     using ActiveGenerators = ConstIteratorForward<std::list<std::pair<double, Solution::Primal>>>;
 
-    [[nodiscard]] ActiveGenerators active_generators() const { return m_active_generators; }
+    [[nodiscard]] ActiveGenerators active_generators() const { return m_active_generators.value(); }
 
     static NodeUpdator<NodeWithActiveColumns>* create_updator(Model& t_model);
 };
@@ -53,11 +55,15 @@ void NodeWithActiveColumns::save_active_generators(const Model &t_strategy) {
 
     auto& subproblem = *column_generation.subproblems().begin();
 
+    std::list<std::pair<double, Solution::Primal>> active_generators;
+
     for (const auto& [var, primal_solution] : subproblem.present_generators()) {
-        if (double value = t_strategy.get(Attr::Solution::Primal, var) ; value > 1e-4) {
-            m_active_generators.emplace_back(value, primal_solution);
+        if (double value = t_strategy.get(Attr::Solution::Primal, var) ; value > TOLERANCE_FOR_ACTIVE_COLUMNS) {
+            active_generators.emplace_back(value, primal_solution);
         }
     }
+
+    m_active_generators = std::make_optional(std::move(active_generators));
 
 }
 
@@ -67,6 +73,10 @@ NodeWithActiveColumns *NodeWithActiveColumns::create_child() const {
 
 NodeUpdator<NodeWithActiveColumns> *NodeWithActiveColumns::create_updator(Model &t_model) {
     return new NodeUpdatorByBound<NodeWithActiveColumns>(t_model);
+}
+
+NodeWithActiveColumns::NodeWithActiveColumns(const NodeWithActiveColumns &t_src) : NodeInfo(t_src) {
+
 }
 
 #endif //AB_ADJUSTABLEROBUSTOPTIMIZATIONWITHOBJECTIVEUNCERTAINTY_NODEWITHACTIVECOLUMNS_H

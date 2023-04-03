@@ -6,6 +6,7 @@
 #include "optimizers/branch-and-bound/node-selection-rules/factories/WorstBound.h"
 #include "../solver/NodeWithActiveColumns.h"
 #include "../solver/MostInfeasibleWithSpatialBranching.h"
+#include "../solver/MostActiveHeuristic.h"
 
 void solve(const std::string& t_filename, ObjectiveType t_objective_type, UncertaintySet t_uncertainty_set, double t_uncertainty_parameter) {
 
@@ -42,6 +43,7 @@ void solve(const std::string& t_filename, ObjectiveType t_objective_type, Uncert
             .with_subtree_depth(0)
             .with_log_level(Info, Blue)
             //.with_log_frequency(1)
+            .with_callback(MostActiveHeuristic(x.begin(), x.end(), q.begin(), q.end()))
     );
 
     model.optimize();

@@ -1,77 +1,56 @@
 //
-// Created by henri on 01/03/23.
+// Created by henri on 03/04/23.
 //
 
 #ifndef AB_ADJUSTABLEROBUSTOPTIMIZATIONWITHOBJECTIVEUNCERTAINTY_MOSTACTIVEHEURISTIC_H
 #define AB_ADJUSTABLEROBUSTOPTIMIZATIONWITHOBJECTIVEUNCERTAINTY_MOSTACTIVEHEURISTIC_H
 
-#include "backends/callback/Callback.h"
-#include "backends/column-generation/ColumnGeneration.h"
-#include "backends/column-generation/Relaxations_DantzigWolfe.h"
+#include "optimizers/branch-and-bound/callbacks/CallbackFactory.h"
+#include "optimizers/branch-and-bound/callbacks/Callback.h"
+#include "NodeWithActiveColumns.h"
 
-template<class BackendT>
-class MostActiveHeuristic : public Callback {
-    std::list<Var> m_integer_variables;
-    std::list<Var> m_continuous_variables;
+class MostActiveHeuristic : public CallbackFactory<NodeWithActiveColumns> {
+    std::list<Var> m_integer_branching_candidates;
+    std::list<Var> m_continuous_branching_candidates;
+protected:
+    MostActiveHeuristic(const MostActiveHeuristic& t_src);
 public:
-    MostActiveHeuristic(std::list<Var> t_integer_variables, std::list<Var> t_continuous_variables)
-        : m_integer_variables(std::move(t_integer_variables)),
-          m_continuous_variables(std::move(t_continuous_variables)) {
+    template<class IteratorIntegerT, class IteratorContinuousT = IteratorIntegerT>
+    MostActiveHeuristic(IteratorIntegerT t_int_begin,
+                        IteratorIntegerT t_int_end,
+                        IteratorContinuousT t_cont_begin,
+                        IteratorContinuousT t_cont_end);
 
-    }
+    class Strategy : public Callback<NodeWithActiveColumns> {
+        std::list<Var> m_integer_branching_candidates;
+        std::list<Var> m_continuous_branching_candidates;
 
-    void execute(Event t_event) override {
+        [[nodiscard]] const Solution::Primal& most_active_generator() const;
+    private:
+        void operator()(BranchAndBoundEvent t_event) override;
+    public:
+        Strategy(std::list<Var> t_integer_branching_candidates, std::list<Var> t_continuous_branching_candidates);
+    };
 
-        if (t_event != Event::NodeSolved) {
-            return;
-        }
+    Callback<NodeWithActiveColumns> *operator()() override;
 
-        const auto& node = relaxation().model();
-
-        const auto& column_generation = node.backend().template as<ColumnGeneration>();
-
-        const Solution::Primal* most_active;
-        double maximum = 0.;
-
-        for (const auto& subproblem : column_generation.subproblems()) {
-            for (const auto &[alpha, generator]: subproblem.present_generators()) {
-
-                const double alpha_value = node.get(Attr::Solution::Primal, alpha);
-
-                if (alpha_value > maximum) {
-                    maximum = alpha_value;
-                    most_active = &generator;
-                }
-
-            }
-        }
-
-        if (!most_active) {
-            throw Exception("Error: no active generator found.");
-        }
-
-        auto tmp = temporary_update_session();
-
-        for (const auto& var : m_integer_variables) {
-            //const double value = std::round(most_active->get(var));
-            const double value = std::ceil(node.get(Attr::Solution::Primal, var));
-            tmp.set(Attr::Var::Lb, var, value);
-            tmp.set(Attr::Var::Ub, var, value);
-        }
-
-        for (const auto& var : m_continuous_variables) {
-            const double value = most_active->get(var);
-            tmp.set(Attr::Var::Lb, var, value);
-            tmp.set(Attr::Var::Ub, var, value);
-        }
-
-        tmp.reoptimize();
-
-        auto solution = save(original_model(), Attr::Solution::Primal, node);
-
-        submit(std::move(solution));
-
-    }
+    [[nodiscard]] CallbackFactory<NodeWithActiveColumns> *clone() const override;
 };
+
+template<class IteratorIntegerT, class IteratorContinuousT>
+MostActiveHeuristic::MostActiveHeuristic(IteratorIntegerT t_int_begin,
+                                         IteratorIntegerT t_int_end,
+                                         IteratorContinuousT t_cont_begin,
+                                         IteratorContinuousT t_cont_end) {
+
+    for ( ; t_int_begin != t_int_end ; ++t_int_begin) {
+        m_integer_branching_candidates.emplace_back(*t_int_begin);
+    }
+
+    for ( ; t_cont_begin != t_cont_end ; ++t_cont_begin) {
+        m_continuous_branching_candidates.emplace_back(*t_cont_begin);
+    }
+
+}
 
 #endif //AB_ADJUSTABLEROBUSTOPTIMIZATIONWITHOBJECTIVEUNCERTAINTY_MOSTACTIVEHEURISTIC_H

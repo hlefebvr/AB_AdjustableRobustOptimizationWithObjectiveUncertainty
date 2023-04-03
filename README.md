@@ -1,5 +1,9 @@
 # Adjustable robust optimization with objective uncertainty
 
+![GitHub license](https://img.shields.io/github/license/hlefebvr/AB_AdjustableRobustOptimizationWithObjectiveUncertainty)
+![Maintained](https://img.shields.io/maintenance/yes/2023)
+![GitHub issues](https://img.shields.io/github/issues-raw/hlefebvr/AB_AdjustableRobustOptimizationWithObjectiveUncertainty)
+
 This repository contains an implementation of the method introduced in [1] for solving adjustable 
 robust optimization problems with objective uncertainty. The instances used in the computational
 section are also available.

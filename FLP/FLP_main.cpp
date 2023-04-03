@@ -1,5 +1,4 @@
 #include <iostream>
-#include <filesystem>
 #include "AdjustableFLP.h"
 #include "solvers.h"
 #include "optimizers/dantzig-wolfe/DantzigWolfeDecomposition.h"
@@ -29,7 +28,7 @@ void solve(const std::string& t_filename, ObjectiveType t_objective_type, Uncert
         BranchAndBound<NodeWithActiveColumns>()
             .with_node_solver(
                 DantzigWolfeDecomposition(problem.decomposition())
-                    .with_master_solver(Gurobi::ContinuousRelaxation())
+                    .with_master_solver(Mosek::ContinuousRelaxation())
                     .with_pricing_solver(Gurobi())
                     .with_farkas_pricing(true)
                     .with_dual_price_smoothing_stabilization(.3)

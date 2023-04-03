@@ -27,10 +27,10 @@ Thus, if you intend to use Idol to interface with Mosek and to use quadratic exp
 option as well (Note that Eigen is a header-only library and that no installation is needed).
 
 **About using Gurobi with quadratic constraints**: To the best of our knowledge, Gurobi does not return a Farkas certificate 
-for infeasible SOCPs. Thus, one should turn off Farkas pricing (using the Idol parameter `Param::ColumnGeneration::FarkasPricing`) when dealing with infeasible restricted master problems if this one
+for infeasible SOCPs. Thus, one should turn off Farkas pricing when dealing with infeasible restricted master problems if this one
 contains SOCP constraints. In this case, Idol will introduce artificial variables (similar to Phase I Simplex) to handle
-the infeasible cases. The value for these artificial columns is controlled by the `Param::ColumnGeneration::ArtificialVarCost`
-parameter (default value: 10+9). Note that this may lead to numerical instabilities.
+the infeasible cases. The value for these artificial columns can be controlled by the `with_artificial_variables_cost`
+method (default value: 10+9). Note that this is likely to lead to numerical instabilities.
 
 ## Build and run (CMake)
 
@@ -48,6 +48,9 @@ make
 ```
 ./FLP/FLP FLP/data/instance_4_8_110__0.txt
 ```
+
+**N.b.:** To help CMake find Gurobi, Mosek and Eigen. Please have your environment variables `GUROBI_HOME`, `MOSEK_HOME` 
+and `EIGEN_HOME` properly configured.
 
 *****
 

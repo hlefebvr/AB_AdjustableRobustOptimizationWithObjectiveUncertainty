@@ -1,0 +1,1 @@
+rm logs.txt history.txt

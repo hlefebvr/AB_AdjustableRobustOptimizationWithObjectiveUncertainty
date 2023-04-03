@@ -87,9 +87,9 @@ void solve(const std::string& t_filename, ObjectiveType t_objective_type, Uncert
               // Total execution time
               << model.optimizer().time().count() << ','
               // Time spent solving the master problem
-              << column_generation.master().optimizer().time().count()
+              << column_generation.master().optimizer().time().cumulative_count() << ','
               // Time spent solving the pricing problem
-              << column_generation.subproblems().begin()->model().optimizer().time().count()
+              << column_generation.subproblems().begin()->model().optimizer().time().cumulative_count()
               << std::endl;
 
 }

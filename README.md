@@ -11,10 +11,10 @@ section are also available.
 ## Dependencies
 
 The implementation of the branch-and-price algorithm with spatial branching is done in C++17 and
-uses the [Idol](https://github.com/hlefebvr/idol) C++ library.
+uses the [Idol](https://github.com/hlefebvr/idol) C++ library (version `v0.2.1-alpha`).
 
 For CMake users (see instructions bellow), the library will automatically be downloaded and 
-locally installed as a cmake dependence. 
+locally installed as a CMake dependence (i.e., inside the `build/_deps` sub-folder). 
 
 Note that [Idol](https://github.com/hlefebvr/idol) itself may have other dependencies depending on what you want to achieve.
 For instance, you probably want to use an external solver (e.g., Gurobi, Mosek or GLPK).
@@ -53,7 +53,7 @@ make
 ./FLP/FLP FLP/data/instance_4_8_110__0.txt
 ```
 
-**N.b.:** To help CMake find Gurobi, Mosek and Eigen. Please have your environment variables `GUROBI_HOME`, `MOSEK_HOME` 
+**N.b.:** To help CMake find Gurobi, Mosek or Eigen. Please have your environment variables `GUROBI_HOME`, `MOSEK_HOME` 
 and `EIGEN_HOME` properly configured.
 
 *****

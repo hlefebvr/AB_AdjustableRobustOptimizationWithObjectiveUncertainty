@@ -72,7 +72,7 @@ void solve(const std::string& t_filename, ObjectiveType t_objective_type, Uncert
 
 int main(int t_argc, const char** t_argv) {
 
-    const std::string filename = "/home/henri/CLionProjects/AB_AdjustableRobustOptimizationWithObjectiveUncertainty/FLP/data/instance_4_8_120__2.txt";
+    const std::string filename = "/home/henri/CLionProjects/AB_AdjustableRobustOptimizationWithObjectiveUncertainty/FLP/data/instance_6_12_120__2.txt";
 
     solve(filename, Convex, Polyhedral, 1);
 

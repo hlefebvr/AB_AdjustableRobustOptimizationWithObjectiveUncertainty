@@ -35,15 +35,15 @@ void solve(const std::string& t_filename, ObjectiveType t_objective_type, Uncert
                     .with_farkas_pricing(true)
                     .with_dual_price_smoothing_stabilization(.3)
                     .with_branching_on_master(false)
-                    .with_log_level(Mute, Yellow)
-                    //.with_log_frequency(1)
+                    .with_log_level(Info, Yellow)
+                    .with_log_frequency(1)
             )
             .with_branching_rule(MostInfeasibleWithSpatialBranching(x.begin(), x.end(), q.begin(), q.end()))
             .with_node_selection_rule(WorstBound())
             .with_best_bound_stop(static_model_optimal_objective_value)
             .with_subtree_depth(0)
             .with_log_level(Info, Default)
-            //dd -.with_log_frequency(1)
+            .with_log_frequency(1)
             .with_callback(MostActiveHeuristic(x.begin(), x.end(), q.begin(), q.end()))
             .with_time_limit(3600)
     );
@@ -100,11 +100,11 @@ void solve(const std::string& t_filename, ObjectiveType t_objective_type, Uncert
 
 int main(int t_argc, const char** t_argv) {
 
-    const std::string filename = t_argc == 2 ? t_argv[1] : "/home/henri/CLionProjects/AB_AdjustableRobustOptimizationWithObjectiveUncertainty/FLP/data/instance_6_12_120__2.txt";
+    const std::string filename = t_argc == 2 ? t_argv[1] : "/home/henri/CLionProjects/AB_AdjustableRobustOptimizationWithObjectiveUncertainty/FLP/data/instance_4_8_120__0.txt";
 
-    for (const auto objective_type : {Convex, Linearized }) {
-        for (const auto unceratinty_set_type : {Ellipsoidal, Polyhedral }) {
-            for (double Gamma : { 1., 2., 3., 4. }) {
+    for (const auto objective_type : {Convex }) {
+        for (const auto unceratinty_set_type : {Polyhedral }) {
+            for (double Gamma : { 3. }) {
                 try {
                     solve(filename, objective_type, unceratinty_set_type, Gamma);
                 } catch (...) {

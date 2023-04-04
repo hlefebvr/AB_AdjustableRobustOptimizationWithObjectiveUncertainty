@@ -102,9 +102,9 @@ int main(int t_argc, const char** t_argv) {
 
     const std::string filename = t_argc == 2 ? t_argv[1] : "/home/henri/CLionProjects/AB_AdjustableRobustOptimizationWithObjectiveUncertainty/FLP/data/instance_4_8_120__0.txt";
 
-    for (const auto objective_type : {Convex }) {
-        for (const auto unceratinty_set_type : {Polyhedral }) {
-            for (double Gamma : { 3. }) {
+    for (const auto objective_type : { Linearized, Convex }) {
+        for (const auto unceratinty_set_type : { Polyhedral, Ellipsoidal }) {
+            for (double Gamma : { 1., 2., 3., 4. }) {
                 try {
                     solve(filename, objective_type, unceratinty_set_type, Gamma);
                 } catch (...) {

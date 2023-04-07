@@ -24,7 +24,7 @@ void solve(const std::string& t_filename, ObjectiveType t_objective_type, Uncert
     model.use(Gurobi());
     model.optimize();
 
-    const double static_model_optimal_objective_value = model.get(Attr::Solution::ObjVal);
+    const double static_model_optimal_objective_value = model.get_best_obj();
 
     model.use(
         BranchAndBound<NodeWithActiveColumns>()
@@ -50,7 +50,7 @@ void solve(const std::string& t_filename, ObjectiveType t_objective_type, Uncert
 
     model.optimize();
 
-    const double adjustable_model_optimal_objective = model.get(Attr::Solution::ObjVal);
+    const double adjustable_model_optimal_objective = model.get_best_obj();
 
     const double static_adjustable_gap = relative_gap(static_model_optimal_objective_value, adjustable_model_optimal_objective);
 
@@ -71,9 +71,9 @@ void solve(const std::string& t_filename, ObjectiveType t_objective_type, Uncert
               // Value of the adjustable model
               << adjustable_model_optimal_objective << ','
               // Solution status of the adjustable model
-              << (SolutionStatus) model.get(Attr::Solution::Status) << ','
+              << model.get_status() << ','
               // Reason for the solution status of the adjustable model
-              << (SolutionReason) model.get(Attr::Solution::Reason) << ','
+              << model.get_reason() << ','
               // Number of created nodes
               << branch_and_bound.n_created_nodes() << ','
               // Number of solved nodes
@@ -81,7 +81,7 @@ void solve(const std::string& t_filename, ObjectiveType t_objective_type, Uncert
               // Number of columns
               << column_generation.subproblems().begin()->pool().size() << ","
               // Final relative optimality gap
-              << (model.get(Attr::Solution::RelGap) * 100) << ','
+              << relative_gap(model.get_best_obj(), model.get_best_obj()) * 100 << ','
               // Final gap between static and adjustable model
               << (static_adjustable_gap * 100) << ','
               // Total execution time

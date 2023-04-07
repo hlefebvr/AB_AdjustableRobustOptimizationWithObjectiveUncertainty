@@ -40,15 +40,15 @@ void MostActiveHeuristic::Strategy::operator()(BranchAndBoundEvent t_event) {
     for (const auto& var : m_integer_branching_candidates) {
         const double current_value = node().info().primal_solution().get(var);
         const double fixation = std::ceil(current_value);
-        interface.set(Attr::Var::Lb, var, fixation);
-        interface.set(Attr::Var::Ub, var, fixation);
+        interface.set_var_lb(var, fixation);
+        interface.set_var_ub(var, fixation);
     }
 
     for (const auto& var : m_continuous_branching_candidates) {
         const double current_value = node().info().primal_solution().get(var);
         const double fixation = current_value;
-        interface.set(Attr::Var::Lb, var, fixation);
-        interface.set(Attr::Var::Ub, var, fixation);
+        interface.set_var_lb(var, fixation);
+        interface.set_var_ub(var, fixation);
     }
 
     interface.reoptimize();

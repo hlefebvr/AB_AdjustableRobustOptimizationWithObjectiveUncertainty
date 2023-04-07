@@ -35,29 +35,25 @@ AdjustableFLP::AdjustableFLP(const Instance &t_instance, ObjectiveType t_objecti
 }
 
 void AdjustableFLP::create_first_stage_variables_x() {
-    m_x = Var::array(m_env, Dim<1>(m_instance.n_facilities()), 0., 1., Binary, "x");
-    m_model.add_array<Var, 1>(m_x);
+    m_x = m_model.add_vars(Dim<1>(m_instance.n_facilities()), 0., 1., Binary, "x");
 }
 
 void AdjustableFLP::create_first_stage_variables_q() {
-    m_q = Var::array(m_env, Dim<1>(m_instance.n_facilities()), 0., 1., Continuous, "q");
-    m_model.add_array<Var, 1>(m_q);
+    m_q = m_model.add_vars(Dim<1>(m_instance.n_facilities()), 0., 1., Continuous, "q");
 }
 
 void AdjustableFLP::create_second_stage_variables_y() {
     const unsigned int n_facilities = m_instance.n_facilities();
     const unsigned int n_customers = m_instance.n_customers();
 
-    m_y = Var::array(m_env, Dim<2>(n_facilities, n_customers), 0., 1., Continuous, "y");
-    m_model.add_array<Var, 2>(m_y);
+    m_y = m_model.add_vars(Dim<2>(n_facilities, n_customers), 0., 1., Continuous, "y");
 }
 
 void AdjustableFLP::create_second_stage_variables_z() {
     const unsigned int n_facilities = m_instance.n_facilities();
     const unsigned int n_customers = m_instance.n_customers();
 
-    m_z = Var::array(m_env, Dim<2>(n_facilities, n_customers), 0., 1., Binary, "z");
-    m_model.add_array<Var, 2>(m_z);
+    m_z = m_model.add_vars(Dim<2>(n_facilities, n_customers), 0., 1., Binary, "z");
 }
 
 void AdjustableFLP::create_second_stage_variables_v() {
@@ -69,8 +65,7 @@ void AdjustableFLP::create_second_stage_variables_v() {
         sum_demands += m_instance.demand(j);
     }
 
-    m_v = Var::array(m_env, Dim<1>(n_facilities), 0., sum_demands, Continuous, "v");
-    m_model.add_array<Var, 1>(m_v);
+    m_v = m_model.add_vars(Dim<1>(n_facilities), 0., sum_demands, Continuous, "v");
 }
 
 void AdjustableFLP::create_second_stage_variables_r() {
@@ -85,8 +80,7 @@ void AdjustableFLP::create_second_stage_variables_r() {
         }
     }
 
-    m_r = Var::array(m_env, Dim<1>(m_instance.n_facilities()), 0., max, Continuous, "r");
-    m_model.add_array<Var, 1>(m_r);
+    m_r = m_model.add_vars(Dim<1>(m_instance.n_facilities()), 0., max, Continuous, "r");
 }
 
 void AdjustableFLP::create_adversarial_variables_lambda() {
@@ -95,8 +89,7 @@ void AdjustableFLP::create_adversarial_variables_lambda() {
 }
 
 void AdjustableFLP::create_adversarial_variables_pi() {
-    m_pi = Var::array(m_env, Dim<2>(m_instance.n_facilities(), m_instance.n_customers()), 0., Inf, Continuous, "pi");
-    m_model.add_array<Var, 2>(m_pi);
+    m_pi = m_model.add_vars(Dim<2>(m_instance.n_facilities(), m_instance.n_customers()), 0., Inf, Continuous, "pi");
 }
 
 void AdjustableFLP::create_facility_activation_constraints() {
@@ -213,8 +206,7 @@ void AdjustableFLP::create_robust_counterpart_constraints() {
     } else {
         //std::cout << "WARNING COSTS ARE WRONGLY COMPUTED" << std::endl;
 
-        auto nu = Var::array(m_env, Dim<2>(n_facilities, n_customers), 0., Inf, Continuous, "nu");
-        m_model.add_array<Var, 2>(nu);
+        auto nu = m_model.add_vars(Dim<2>(n_facilities, n_customers), 0., Inf, Continuous, "nu");
 
         for (unsigned int i = 0; i < n_facilities; ++i) {
             for (unsigned int j = 0; j < n_customers; ++j) {
@@ -248,6 +240,6 @@ void AdjustableFLP::create_objective() {
                                 ))
     ;
 
-    m_model.set(Attr::Obj::Expr, std::move(objective));
+    m_model.set_obj_expr(std::move(objective));
 }
 

@@ -30,7 +30,7 @@ void NodeWithActiveColumns::save_active_generators(const Model &t_strategy) {
     std::list<std::pair<double, Solution::Primal>> active_generators;
 
     for (const auto& [var, primal_solution] : subproblem.present_generators()) {
-        if (double value = t_strategy.get(Attr::Solution::Primal, var) ; value > TOLERANCE_FOR_ACTIVE_COLUMNS) {
+        if (double value = t_strategy.get_var_primal(var) ; value > TOLERANCE_FOR_ACTIVE_COLUMNS) {
             active_generators.emplace_back(value, primal_solution);
         }
     }

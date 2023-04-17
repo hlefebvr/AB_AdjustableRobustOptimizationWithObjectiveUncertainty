@@ -11,7 +11,7 @@ section are also available.
 ## Dependencies
 
 The implementation of the branch-and-price algorithm with spatial branching is done in C++17 and
-uses the [Idol](https://github.com/hlefebvr/idol) C++ library (version `v0.2.1-alpha`).
+uses the [Idol](https://github.com/hlefebvr/idol) C++ library (version `v0.3.0-alpha`).
 
 For CMake users (see instructions bellow), the library will automatically be downloaded and 
 locally installed as a CMake dependence (i.e., inside the `build/_deps` sub-folder). 
